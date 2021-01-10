@@ -6,6 +6,7 @@ use App\Http\Controllers\TaiKhoanController;
 use App\Http\Controllers\KhachHangController;
 use App\Http\Controllers\QuangCaoController;
 use App\Http\Controllers\ThongBaoController;
+use App\Http\Controllers\TinhThanhController;
 use App\Http\Controllers\TinLuuController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -53,19 +54,25 @@ Route::get('/thongbao/{id}',[ThongBaoController::class,'dsthongbao']);
 Route::delete('/thongbao/{id}',[ThongBaoController::class,'xoathongbao']);
 
 // Bai dang
-//Route::get('/baidang',[BaiDangController::class,'index']);
+Route::get('/baidang',[BaiDangController::class,'index']);
 Route::post('/baidang',[BaiDangController::class,'store']);
 Route::get('/baidang/{id}',[BaiDangController::class,'show']);
 Route::put('/baidang/{id}',[BaiDangController::class,'update']);
 Route::delete('/baidang/{id}',[BaiDangController::class,'destroy']);
-    // -- Bai dang cua tung khach hange
-    Route::get('/bdkh/{id}',[BaiDangController::class,'baidangkhachhang']);
+    // -- Bai dang cua tung khach hang
+Route::get('/bdkh/{id}',[BaiDangController::class,'baidangkhachhang']);
     // --  The loai san pham --
 Route::get('/theloaisp',[BaiDangController::class,'theloaisp']);
+   // --  Hang san xuat theo id loai san pham --
+Route::get('/hangsx/{id}',[BaiDangController::class,'hangsx']);
     // -- Model san pham theo the loai san pham va hang sx --
 Route::post('/modelsp',[BaiDangController::class,'modelsp']);
     //-- Chi tiet model --
 Route::post('/chitietmodel',[BaiDangController::class,'chitietsp']);
+    // -- Bai dang theo tinh thanh
+Route::post('/bdtt',[BaiDangController::class,'baidangtinhthanh']);
+    // -- Bai dang theo muc gia + tinh thanh
+Route::post('/locbaidang',[BaiDangController::class,'locbaidang']);
 
 // Tin da luu
 Route::post('/tinluu',[TinLuuController::class,'themtinluu']);
@@ -74,6 +81,17 @@ Route::delete('/tinluu/{id}',[TinLuuController::class,'xoatinluu']);
 
 // Quang cao
 Route::get('/baidangtheloai/{id}',[QuangCaoController::class,'baidangtheloai']);
+Route::get('/quangcao',[QuangCaoController::class,'dsquangcao']);
+Route::get('/quangcao/{id}',[QuangCaoController::class,'timquangcao']);
+Route::post('/quangcao',[QuangCaoController::class,'themquangcao']);
+Route::put('/quangcao/{id}',[QuangCaoController::class,'suaquangcao']);
+Route::delete('/quangcao/{id}',[QuangCaoController::class,'xoaquangcao']);
+
+// Tinh thanh - quan huyen
+Route::get('/tinhthanh',[TinhThanhController::class,'dstinhthanh']);
+Route::get('/quanhuyen/{id}',[TinhThanhController::class,'quanhuyen']);
+
+
 
 
 

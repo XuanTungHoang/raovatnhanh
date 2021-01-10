@@ -19,8 +19,11 @@ class BaiDangController extends Controller
      */
     public function index()
     {
-        // $list = DB::table('baidang')->where('IDKhachHang',$id_kh)->get();
-
+        $list = DB::table('baidang')
+        ->where('TrangThai','1')
+        ->orderBy('NgayDang', 'desc')
+        ->get();
+        return response()->json($list,200);
     }
 
     /**
@@ -76,7 +79,7 @@ class BaiDangController extends Controller
                     'TinhThanh' => $this->request['TinhThanh'],
                     'QuanHuyen' => $this->request['QuanHuyen'],
                     'NgayDang' => $NgayDang,
-                    'TrangThai' => $this->request['TrangThai'],
+                    'TrangThai' => 1,
                 ]);
                 if ($baidang) {
                     return response()->json(1, 201);
@@ -95,9 +98,11 @@ class BaiDangController extends Controller
      */
     public function show($id)
     {
-        $baidang = DB::table('baidang')->where('IDBaiDang', $id)
-            ->orderBy('NgayDang', 'desc')
-            ->get();
+        $baidang = DB::table('baidang')
+        ->join('khachhang','khachhang.IDKhachHang','=','baidang.IDKhachHang')
+        ->select('khachhang.*','baidang.*')
+        ->where('IDBaiDang', $id)
+        ->get();
         return response()->json($baidang, 200);
     }
 
@@ -207,6 +212,28 @@ class BaiDangController extends Controller
         return response()->json($theloaisp, 200);
     }
 
+    public function hangsx($id)
+    {
+        if ($id == 1) {
+            $hangsx = DB::table('dienthoai')
+            ->get();
+            return response()->json($hangsx, 200);
+        }
+        if ($id == 2) {
+            $hangsx = DB::table('laptop')
+            ->get();
+            return response()->json($hangsx, 200);
+        }
+        if ($id == 3) {
+            $hangsx = DB::table('linhkiendidong')->get();
+            return response()->json($hangsx, 200);
+        }
+        if ($id == 4) {
+            $hangsx = DB::table('linhkienmaytinh')->get();
+            return response()->json($hangsx, 200);
+        }
+    }
+
     public function modelsp()
     {
         $id_theloai = $this->request['IDTheLoaiSP'];
@@ -217,9 +244,9 @@ class BaiDangController extends Controller
             return response()->json($models, 200);
         }
         if ($id_theloai == 2) {
-            $hangsx = DB::table('thongtinlaptop')->where('IDHangSX', $id_hangsx)
+            $models = DB::table('thongtinlaptop')->where('IDHangSX', $id_hangsx)
                 ->get();
-            return response()->json($hangsx, 200);
+            return response()->json($models, 200);
         }
         if ($id_theloai == 3) {
             $hangsx = DB::table('linhkiendidong')->get();
@@ -243,6 +270,60 @@ class BaiDangController extends Controller
             return response()->json($models, 200);
         } else {
             return response()->json(0, 200);
+        }
+    }
+
+    public function baidangtinhthanh(){
+        $keys = $this->request['TuKhoa'];
+        $id = $this->request['IDTinhThanh'];
+        $baidang = DB::table('baidang')->where('TinhThanh',$id)
+        ->where('TieuDe','like','%'.$keys.'%')
+        ->get();
+        $count = $baidang->count();
+        return response()->json(['data'=>$baidang,$count=>$count],200);
+    }
+
+    public function locbaidang(){
+        $tuychon = $this->request['tuychon'];
+        $mucgia = $this->request['mucgia'];
+        $tinhthanh = $this->request['tinhthanh'];
+
+        if($mucgia==1){
+            $tu = 0;
+            $den = 1000000;
+        }
+        if($mucgia==2){
+            $tu = 1000000;
+            $den = 3000000;
+        }
+        if($mucgia==3){
+            $tu = 3000000;
+            $den = 5000000;
+        }
+        if($mucgia==4){
+            $tu = 5000000;
+            $den = 8000000;
+        }
+        if($mucgia==5){
+            $tu = 5000000;
+            $den = 50000000;
+        }
+        // gia tu thap den cao
+        if($tuychon == 1){
+            $baidang = DB::table('baidang')->where('TinhThanh',$tinhthanh)
+            ->whereBetween('GiaBan',[$tu,$den])
+            ->orderBy('GiaBan', 'asc')
+            ->get();
+
+            return response()->json($baidang,200);
+        }
+        if($tuychon == 2){
+            $baidang = DB::table('baidang')->where('TinhThanh',$tinhthanh)
+            ->whereBetween('GiaBan',[$tu,$den])
+            ->orderBy('GiaBan', 'desc')
+            ->get();
+
+            return response()->json($baidang,200);
         }
     }
 }
