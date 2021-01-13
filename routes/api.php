@@ -1,11 +1,14 @@
 <?php
 
+use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BaiDangController;
 use App\Http\Controllers\LoaiTKController;
 use App\Http\Controllers\TaiKhoanController;
 use App\Http\Controllers\KhachHangController;
 use App\Http\Controllers\QuangCaoController;
+use App\Http\Controllers\ThaoTacController;
 use App\Http\Controllers\ThongBaoController;
+use App\Http\Controllers\ThongKeController;
 use App\Http\Controllers\TinhThanhController;
 use App\Http\Controllers\TinLuuController;
 use Illuminate\Http\Request;
@@ -25,6 +28,11 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+// Auth 
+Route::post('/dangnhap',[AuthController::class,'login']);
+Route::post('/doimaukhau/{id}',[AuthController::class,'doimatkhau']);
+
 
 // Loai tai khoan
 Route::get('/loaitaikhoan',[LoaiTKController::class,'index']);
@@ -91,6 +99,21 @@ Route::delete('/quangcao/{id}',[QuangCaoController::class,'xoaquangcao']);
 Route::get('/tinhthanh',[TinhThanhController::class,'dstinhthanh']);
 Route::get('/quanhuyen/{id}',[TinhThanhController::class,'quanhuyen']);
 
+// Thao tac 
+Route::get('/dsbaocao',[ThaoTacController::class,'dsbaocao']);
+Route::post('/baocao',[ThaoTacController::class,'thembaocao']);
+Route::get('/baocao/{id}',[ThaoTacController::class,'chitietbaocao']);
+Route::get('/anbaidang/{id}',[ThaoTacController::class,'anbaidang']);
+Route::get('/khoiphucbaidang/{id}',[ThaoTacController::class,'khoiphucbaidang']);
+
+// Thong ke
+Route::get('/sobaidang',[ThongKeController::class,'sobaidang']);
+Route::get('/sokhachhang',[ThongKeController::class,'sokhachhang']);
+Route::get('/baidangbaocao',[ThongKeController::class,'baidangbaocao']);
+Route::get('/baidangtheothang/{id}',[ThongKeController::class,'baidangtheothang']);
+Route::get('/khachhangtheothang/{id}',[ThongKeController::class,'khachhangtheothang']);
+Route::get('/bieudotheloai',[ThongKeController::class,'bieudotheloai']);
+Route::get('/bieudotinhthanh',[ThongKeController::class,'bieudotinhthanh']);
 
 
 

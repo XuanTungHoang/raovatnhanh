@@ -10,7 +10,10 @@ class QuangCaoController extends Controller
 {
 
     public function baidangtheloai($id){
-        $list = DB::table('baidang')->where('IDTheLoaiSP', $id)->get();
+        $list = DB::table('baidang')
+        ->where('IDTheLoaiSP', $id)
+        ->orderBy('NgayDang','DESC')
+        ->get();
         return response()->json($list,200);
     }
 

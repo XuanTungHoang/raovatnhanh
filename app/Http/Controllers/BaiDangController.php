@@ -20,10 +20,10 @@ class BaiDangController extends Controller
     public function index()
     {
         $list = DB::table('baidang')
-        ->where('TrangThai','1')
-        ->orderBy('NgayDang', 'desc')
-        ->get();
-        return response()->json($list,200);
+            ->where('TrangThai', '1')
+            ->orderBy('NgayDang', 'desc')
+            ->get();
+        return response()->json($list, 200);
     }
 
     /**
@@ -44,49 +44,27 @@ class BaiDangController extends Controller
      */
     public function store(Request $request)
     {
-        $rules = ['image' => 'image|max:1024'];
-        $posts = ['image' => $request->file('HinhAnh')];
-        $valid = Validator::make($posts, $rules);
-        if ($valid->fails()) {
-            // Có lỗi, trả lỗi
-            return response()->json(['Thongbao' => 'Hình ảnh không hợp lệ !'], 400);
+
+        $NgayDang = Carbon::now();
+        $NgayDang = $NgayDang->toDateTimeString();
+
+        $baidang = DB::table('baidang')->insert([
+            'IDKhachHang' => $this->request['IDKhachHang'],
+            'TieuDe' => $this->request['TieuDe'],
+            'NoiDung' => $this->request['NoiDung'],
+            'HinhAnh' => $this->request['HinhAnh'],
+            'IDTheLoaiSP' => $this->request['IDTheLoaiSP'],
+            'IDModel' => $this->request['IDModel'],
+            'GiaBan' => $this->request['GiaBan'],
+            'TinhThanh' => $this->request['TinhThanh'],
+            'QuanHuyen' => $this->request['QuanHuyen'],
+            'NgayDang' => $NgayDang,
+            'TrangThai' => 1,
+        ]);
+        if ($baidang) {
+            return response()->json(1, 201);
         } else {
-            if ($request->file('HinhAnh')->isValid()) {
-                // Lay file
-                $file = $request->file('HinhAnh');
-                // Lay ten file
-                $file_name = $file->getClientOriginalName();
-                // Lay duoi file
-                $file_extension = $file->getClientOriginalExtension();
-                // Doi ten
-                $new_name = $file_name . "_" . time() . "_" . rand(0, 999999) . "." . $file_extension;
-                // Lay path de luu
-                $uploadPath = public_path('/upload/postss');
-                // Di chuyen va luu file
-                $file->move($uploadPath, $new_name);
-
-                $NgayDang = Carbon::now();
-                $NgayDang = $NgayDang->toDateTimeString();
-
-                $baidang = DB::table('baidang')->insert([
-                    'IDKhachHang' => $this->request['IDKhachHang'],
-                    'TieuDe' => $this->request['TieuDe'],
-                    'NoiDung' => $this->request['NoiDung'],
-                    'HinhAnh' => $new_name,
-                    'IDTheLoaiSP' => $this->request['IDTheLoaiSP'],
-                    'IDModel' => $this->request['IDModel'],
-                    'GiaBan' => $this->request['GiaBan'],
-                    'TinhThanh' => $this->request['TinhThanh'],
-                    'QuanHuyen' => $this->request['QuanHuyen'],
-                    'NgayDang' => $NgayDang,
-                    'TrangThai' => 1,
-                ]);
-                if ($baidang) {
-                    return response()->json(1, 201);
-                } else {
-                    return response()->json(0, 400);
-                }
-            }
+            return response()->json(0, 400);
         }
     }
 
@@ -99,10 +77,12 @@ class BaiDangController extends Controller
     public function show($id)
     {
         $baidang = DB::table('baidang')
-        ->join('khachhang','khachhang.IDKhachHang','=','baidang.IDKhachHang')
-        ->select('khachhang.*','baidang.*')
-        ->where('IDBaiDang', $id)
-        ->get();
+            ->join('khachhang', 'khachhang.IDKhachHang', '=', 'baidang.IDKhachHang')
+            ->join('province','province.id','=','baidang.TinhThanh')
+            ->join('district','district.id','=','baidang.QuanHuyen')
+            ->select('khachhang.*', 'baidang.*','province._name as TenTinhThanh','district._name as TenQuanHuyen')
+            ->where('IDBaiDang', $id)
+            ->get();
         return response()->json($baidang, 200);
     }
 
@@ -126,55 +106,20 @@ class BaiDangController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $rules = ['image' => 'image|max:1024'];
-        $posts = ['image' => $request->file('HinhAnh')];
-        $valid = Validator::make($posts, $rules);
-        //return response()->json($posts);
-        if ($valid->fails()) {
-            // Có lỗi, trả lỗi
-            return response()->json(['Thongbao' => 'Hình ảnh không hợp lệ !'], 400);
+        $update = DB::table('baidang')->where('IDBaiDang', $id)->update(array(
+            'TieuDe' => $this->request['TieuDe'],
+            'NoiDung' => $this->request['NoiDung'],
+            'HinhAnh' => $this->request['HinhAnh'],
+            'IDTheLoaiSP' => $this->request['IDTheLoaiSP'],
+            'IDModel' => $this->request['IDModel'],
+            'GiaBan' => $this->request['GiaBan'],
+            'TinhThanh' => $this->request['TinhThanh'],
+            'QuanHuyen' => $this->request['QuanHuyen'],
+        ));
+        if ($update) {
+            return response()->json(['thongbao' => 'Success'], 200);
         } else {
-            if ($request->file('HinhAnh')->isValid()) {
-                // Lay file
-                $file = $request->file('HinhAnh');
-                // Lay ten file
-                $file_name = $file->getClientOriginalName();
-                // Lay duoi file
-                $file_extension = $file->getClientOriginalExtension();
-                // Doi ten
-                $new_name = $file_name . "_" . time() . "_" . rand(0, 999999) . "." . $file_extension;
-                // Lay path de luu
-                $baidang = BaiDang::where('IDBaiDang', $id)->first();
-                $old_name_image = $baidang->HinhAnh;
-               // return response()->json($old_name_image, 400);
-
-
-                $update = DB::table('baidang')->where('IDBaiDang', $id)->update(array(
-                    'TieuDe' => $this->request['TieuDe'],
-                    'NoiDung' => $this->request['NoiDung'],
-                    'HinhAnh' => $new_name,
-                    'IDTheLoaiSP' => $this->request['IDTheLoaiSP'],
-                    'IDModel' => $this->request['IDModel'],
-                    'GiaBan' => $this->request['GiaBan'],
-                    'TinhThanh' => $this->request['TinhThanh'],
-                    'QuanHuyen' => $this->request['QuanHuyen'],
-
-                ));
-                if ($update) {
-                    // Lay path de luu
-                    $uploadPath = public_path('/upload/postss');
-                    // Di chuyen va luu file
-                    $file->move($uploadPath, $new_name);
-                    //Xoa anh cu
-                    $image_path = "public/upload/postss/" . $old_name_image;  // Value is not URL but directory file path
-                    if (File::exists($image_path)) {
-                        File::delete($image_path);
-                        return response()->json(['thongbao' => 'Success'], 200);
-                    } else {
-                        return response()->json(0, 400);
-                    }
-                }
-            }
+            return response()->json(0, 400);
         }
     }
 
@@ -184,24 +129,21 @@ class BaiDangController extends Controller
      * @param  \App\Models\BaiDang  $baiDang
      * @return \Illuminate\Http\Response
      */
-    public function destroy( $id)
+    public function destroy($id)
     {
-        $baidang = BaiDang::where('IDBaiDang',$id)->first();
-        $old_name_image=$baidang->HinhAnh;
         $delete = DB::table('baidang')->where('IDBaiDang', $id)->delete();
-        if($delete){
-            $image_path = "public/upload/postss/".$old_name_image;  
-            if(File::exists($image_path)) {
-                File::delete($image_path);
-            }
-            return response()->json(['thongbao'=>'Success']);
-        }else{
-            return response()->json(0,400);
+        if ($delete) {
+            return response()->json(['thongbao' => 'Success']);
+        } else {
+            return response()->json(0, 400);
         }
     }
 
-    public function baidangkhachhang($id_kh){
-        $baidang = DB::table('baidang')->where('IDKhachHang', $id_kh)
+    public function baidangkhachhang($id_kh)
+    {
+        $baidang = DB::table('baidang')
+            ->where('IDKhachHang', $id_kh)
+            ->where('TrangThai','1')
             ->orderBy('NgayDang', 'desc')
             ->get();
         return response()->json($baidang, 200);
@@ -216,12 +158,12 @@ class BaiDangController extends Controller
     {
         if ($id == 1) {
             $hangsx = DB::table('dienthoai')
-            ->get();
+                ->get();
             return response()->json($hangsx, 200);
         }
         if ($id == 2) {
             $hangsx = DB::table('laptop')
-            ->get();
+                ->get();
             return response()->json($hangsx, 200);
         }
         if ($id == 3) {
@@ -273,57 +215,59 @@ class BaiDangController extends Controller
         }
     }
 
-    public function baidangtinhthanh(){
+    public function baidangtinhthanh()
+    {
         $keys = $this->request['TuKhoa'];
         $id = $this->request['IDTinhThanh'];
-        $baidang = DB::table('baidang')->where('TinhThanh',$id)
-        ->where('TieuDe','like','%'.$keys.'%')
-        ->get();
+        $baidang = DB::table('baidang')->where('TinhThanh', $id)
+            ->where('TieuDe', 'like', '%' . $keys . '%')
+            ->get();
         $count = $baidang->count();
-        return response()->json(['data'=>$baidang,$count=>$count],200);
+        return response()->json(['data' => $baidang, $count => $count], 200);
     }
 
-    public function locbaidang(){
+    public function locbaidang()
+    {
         $tuychon = $this->request['tuychon'];
         $mucgia = $this->request['mucgia'];
         $tinhthanh = $this->request['tinhthanh'];
 
-        if($mucgia==1){
+        if ($mucgia == 1) {
             $tu = 0;
             $den = 1000000;
         }
-        if($mucgia==2){
+        if ($mucgia == 2) {
             $tu = 1000000;
             $den = 3000000;
         }
-        if($mucgia==3){
+        if ($mucgia == 3) {
             $tu = 3000000;
             $den = 5000000;
         }
-        if($mucgia==4){
+        if ($mucgia == 4) {
             $tu = 5000000;
             $den = 8000000;
         }
-        if($mucgia==5){
+        if ($mucgia == 5) {
             $tu = 5000000;
             $den = 50000000;
         }
         // gia tu thap den cao
-        if($tuychon == 1){
-            $baidang = DB::table('baidang')->where('TinhThanh',$tinhthanh)
-            ->whereBetween('GiaBan',[$tu,$den])
-            ->orderBy('GiaBan', 'asc')
-            ->get();
+        if ($tuychon == 1) {
+            $baidang = DB::table('baidang')->where('TinhThanh', $tinhthanh)
+                ->whereBetween('GiaBan', [$tu, $den])
+                ->orderBy('GiaBan', 'asc')
+                ->get();
 
-            return response()->json($baidang,200);
+            return response()->json($baidang, 200);
         }
-        if($tuychon == 2){
-            $baidang = DB::table('baidang')->where('TinhThanh',$tinhthanh)
-            ->whereBetween('GiaBan',[$tu,$den])
-            ->orderBy('GiaBan', 'desc')
-            ->get();
+        if ($tuychon == 2) {
+            $baidang = DB::table('baidang')->where('TinhThanh', $tinhthanh)
+                ->whereBetween('GiaBan', [$tu, $den])
+                ->orderBy('GiaBan', 'desc')
+                ->get();
 
-            return response()->json($baidang,200);
+            return response()->json($baidang, 200);
         }
     }
 }
